@@ -232,7 +232,7 @@ let catSrc = null;       // offscreen canvas with white → transparent
 let catPose = 'sit';
 let poseTimerId = null;
 
-catImg.src = '貪吃橘貓.png';
+catImg.src = 'cat-sprite.png';
 catImg.onload = () => {
   const W = catImg.naturalWidth, H = catImg.naturalHeight;
   const tmp = document.createElement('canvas');
@@ -346,7 +346,14 @@ function stopPoseCycle() { if (poseTimerId) { clearTimeout(poseTimerId); poseTim
 //  SOUND EFFECTS
 // ══════════════════════════════
 const sfx = {};
-['選項','過關','消一格','連消兩格','連消三格','連消四格以上','道具','垃圾'].forEach(n => { sfx[n] = new Audio(`${n}.mp3`); });
+sfx['選項']   = new Audio('sfx-menu.mp3');
+sfx['過關']   = new Audio('sfx-clear.mp3');
+sfx['消一格'] = new Audio('sfx-match1.mp3');
+sfx['連消兩格'] = new Audio('sfx-match2.mp3');
+sfx['連消三格'] = new Audio('sfx-match3.mp3');
+sfx['連消四格以上'] = new Audio('sfx-match4.mp3');
+sfx['道具']   = new Audio('sfx-item.mp3');
+sfx['垃圾']   = new Audio('sfx-junk.mp3');
 function playSfx(name) { try { const a=sfx[name]; if(!a)return; a.currentTime=0; a.play().catch(()=>{}); } catch(e){} }
 // Play selection sound on any button hover
 document.addEventListener('mouseenter', e => { if (e.target.closest('button')) playSfx('選項'); }, true);
@@ -414,7 +421,7 @@ function playMeow() {
 // ══════════════════════════════
 const rescueImg = new Image();
 let rescueSrc = null;
-rescueImg.src = '大餐救援包.png';
+rescueImg.src = 'rescue-pack.png';
 rescueImg.onload = () => {
   const W=rescueImg.naturalWidth, H=rescueImg.naturalHeight;
   const tmp=document.createElement('canvas'); tmp.width=W; tmp.height=H;
@@ -1002,7 +1009,8 @@ const UNLOCK_THRESHOLD = 30000;
 const TOTAL_CATS = 10;
 
 // 9 collection cats + 阿橘 last (index 9)
-const CAT_FILES = ['Benz','小公舉','斑斑','歐罵罵','灰仔','糰子','花花花','豹豹','銅鑼燒','阿橘'];
+const CAT_NAMES = ['Benz','小公舉','斑斑','歐罵罵','灰仔','糰子','花花花','豹豹','銅鑼燒','阿橘'];
+const CAT_FILES = ['cat-benz','cat-princess','cat-banban','cat-omama','cat-grey','cat-dango','cat-flower','cat-leopard','cat-dorayaki','cat-aju'];
 
 let catCollection = JSON.parse(localStorage.getItem(COLLECTION_KEY) || '[]');
 let lastUnlockTier = 0;
@@ -1139,7 +1147,7 @@ function showNextUnlock() {
   c.width = 100; c.height = 100;
   const drawn = makeCollCanvas(catId, 100, false);
   c.getContext('2d').drawImage(drawn, 0, 0);
-  document.getElementById('unlockName').textContent = `✦ ${CAT_FILES[catId]} ✦`;
+  document.getElementById('unlockName').textContent = `✦ ${CAT_NAMES[catId]} ✦`;
   popup.classList.add('show');
 }
 
@@ -1173,7 +1181,7 @@ function renderCollection() {
     frame.appendChild(c);
     const lbl = document.createElement('div');
     lbl.className = 'col-num' + (unlocked ? ' unlocked' : '');
-    lbl.textContent = unlocked ? CAT_FILES[i] : '???';
+    lbl.textContent = unlocked ? CAT_NAMES[i] : '???';
     cell.appendChild(frame);
     cell.appendChild(lbl);
     grid.appendChild(cell);
