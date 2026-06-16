@@ -7,8 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:#1a1a2e; color:#fff; font-family:'Press Start 2P',monospace; min-height:100vh; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; padding:10px 0 20px; }
-.screen { display:none; flex-direction:column; align-items:center; gap:10px; width:100%; max-width:420px; padding:0 10px; }
+body { background:#1a1a2e; color:#fff; font-family:'Press Start 2P',monospace; min-height:100svh; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 0 30px; }
+.screen { display:none; flex-direction:column; align-items:center; gap:8px; width:100%; max-width:420px; padding:0 8px; }
 .screen.active { display:flex; }
 .px-btn { border:4px solid #fff; box-shadow:4px 4px 0 #000; background:#e94560; color:#fff; font-family:'Press Start 2P',monospace; font-size:14px; padding:12px 20px; cursor:pointer; transition:transform .07s,box-shadow .07s; letter-spacing:1px; line-height:1.4; }
 .px-btn:hover  { transform:translate(2px,2px); box-shadow:2px 2px 0 #000; }
@@ -38,7 +38,7 @@ body { background:#1a1a2e; color:#fff; font-family:'Press Start 2P',monospace; m
 .nut-name { color:#eee; } .nut-pct { color:#ffd700; }
 .nut-track { height:14px; background:#111; border:2px solid #333; overflow:hidden; }
 .nut-fill  { height:100%; transition:width .3s; }
-#gameCanvas { border:4px solid #fff; box-shadow:6px 6px 0 #000; cursor:pointer; display:block; touch-action:none; }
+#gameCanvas { border:4px solid #fff; box-shadow:6px 6px 0 #000; cursor:pointer; display:block; touch-action:none; width:min(352px, calc(100vw - 24px)); aspect-ratio:352/402; image-rendering:pixelated; }
 .cat-row { display:flex; align-items:center; gap:10px; width:100%; }
 .cat-speech { flex:1; background:#16213e; border:3px solid #555; padding:10px; font-size:11px; color:#ffd700; line-height:2.0; min-height:66px; font-family:Arial,sans-serif; }
 .junk-notice { font-size:11px; color:#e94560; text-align:center; line-height:1.8; }
