@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>貓咪健康大作戰</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#1a1a2e; color:#fff; font-family:'Press Start 2P',monospace; min-height:100vh; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; padding:10px 0 20px; }
+.screen { display:none; flex-direction:column; align-items:center; gap:10px; width:100%; max-width:420px; padding:0 10px; }
+.screen.active { display:flex; }
+.px-btn { border:4px solid #fff; box-shadow:4px 4px 0 #000; background:#e94560; color:#fff; font-family:'Press Start 2P',monospace; font-size:14px; padding:12px 20px; cursor:pointer; transition:transform .07s,box-shadow .07s; letter-spacing:1px; line-height:1.4; }
+.px-btn:hover  { transform:translate(2px,2px); box-shadow:2px 2px 0 #000; }
+.px-btn:active { transform:translate(4px,4px); box-shadow:none; }
+.px-btn.green { background:#27ae60; } .px-btn.blue { background:#2980b9; } .px-btn.grey { background:#555; }
+.px-box { border:4px solid #fff; box-shadow:4px 4px 0 #000; background:#16213e; }
+/* Start */
+.title-box { background:#e94560; border:4px solid #fff; box-shadow:6px 6px 0 #000; padding:14px 20px; text-align:center; width:100%; }
+.title-main { font-size:20px; letter-spacing:1px; line-height:1.8; }
+.title-sub  { font-size:10px; color:#ffd700; letter-spacing:2px; }
+.start-mid  { display:flex; gap:14px; align-items:center; width:100%; }
+.start-rules { font-size:11px; color:#ccc; line-height:2.2; flex:1; border:2px solid #333; padding:10px; background:#0f0f23; }
+.start-rules b { color:#ffd700; }
+.food-legend { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+.legend-item { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:9px; color:#aaa; }
+#playerNameInput { background:#0f0f23; border:4px solid #e94560; color:#fff; font-family:'Press Start 2P',monospace; font-size:13px; padding:10px 14px; width:100%; outline:none; text-align:center; box-shadow:4px 4px 0 #000; }
+.btn-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+/* Game */
+.game-topbar { display:flex; align-items:center; justify-content:space-between; width:100%; }
+.level-badge { background:#e94560; border:3px solid #fff; box-shadow:3px 3px 0 #000; padding:7px 12px; font-size:14px; }
+.score-pills { display:flex; gap:6px; }
+.score-pill { background:#16213e; border:2px solid #444; padding:5px 8px; font-size:11px; text-align:center; min-width:60px; }
+.score-pill-val { color:#ffd700; font-size:14px; }
+.score-pill-lbl { color:#888; font-size:8px; margin-top:2px; }
+.nut-row { margin-bottom:6px; }
+.nut-header { display:flex; justify-content:space-between; font-size:10px; margin-bottom:3px; }
+.nut-name { color:#eee; } .nut-pct { color:#ffd700; }
+.nut-track { height:14px; background:#111; border:2px solid #333; overflow:hidden; }
+.nut-fill  { height:100%; transition:width .3s; }
+#gameCanvas { border:4px solid #fff; box-shadow:6px 6px 0 #000; cursor:pointer; display:block; touch-action:none; }
+.cat-row { display:flex; align-items:center; gap:10px; width:100%; }
+.cat-speech { flex:1; background:#16213e; border:3px solid #555; padding:10px; font-size:11px; color:#ffd700; line-height:2.0; min-height:66px; font-family:Arial,sans-serif; }
+.junk-notice { font-size:11px; color:#e94560; text-align:center; line-height:1.8; }
+/* Overlay */
+#sparkleCanvas { position:fixed; top:0; left:0; pointer-events:none; z-index:999; }
+/* GameOver */
+#gameOverScreen { text-align:center; gap:14px; }
+.go-title { font-size:22px; color:#e94560; text-shadow:4px 4px 0 #000; }
+.go-score { font-size:36px; color:#ffd700; }
+.go-detail { font-size:11px; color:#aaa; line-height:2.4; }
+.go-rank   { font-size:14px; color:#7affaf; }
+/* LB */
+.lb-title { font-size:16px; color:#ffd700; }
+.lb-row { display:flex; gap:6px; padding:8px 10px; font-size:11px; border-bottom:1px solid #333; }
+.lb-row.me { background:#1a3a1a; }
+.lb-rank { width:30px; color:#e94560; } .lb-name { flex:1; } .lb-lv { width:42px; color:#7affaf; text-align:center; } .lb-sc { width:60px; color:#ffd700; text-align:right; }
+.lb-empty { font-size:11px; color:#555; padding:20px; text-align:center; }
+/* Collection */
+#collectionOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.92); align-items:flex-start; justify-content:center; z-index:60; overflow-y:auto; padding:20px 10px 30px; }
+#collectionOverlay.show { display:flex; flex-direction:column; align-items:center; gap:14px; }
+.col-title { font-size:18px; color:#ffd700; text-shadow:3px 3px 0 #000; text-align:center; }
+.col-subtitle { font-size:10px; color:#aaa; text-align:center; }
+.col-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; width:100%; max-width:340px; }
+.col-cell { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.col-cell.last-cat { grid-column: 2; }
+.col-frame { width:90px; height:90px; border:3px solid #333; box-shadow:3px 3px 0 #000; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.col-frame.unlocked { border-color:#ffd700; box-shadow:3px 3px 0 #000, 0 0 10px rgba(255,215,0,.4); }
+.col-frame canvas { image-rendering:pixelated; }
+.col-frame canvas.shadow { filter:brightness(0); }
+.col-num { font-size:9px; color:#555; text-align:center; }
+.col-num.unlocked { color:#ffd700; }
+/* Unlock popup */
+#unlockPopup { display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); align-items:center; justify-content:center; z-index:70; flex-direction:column; gap:10px; }
+#unlockPopup.show { display:flex; }
+.unlock-box { background:#16213e; border:5px solid #ffd700; box-shadow:8px 8px 0 #000; padding:24px 30px; text-align:center; max-width:280px; width:90%; }
+.unlock-title { font-size:14px; color:#ffd700; margin-bottom:12px; }
+.unlock-name { font-size:11px; color:#fff; margin-top:8px; }
+/* rescue btn colour overrides */
+#rescueBtn { background:#e67e22; }
+#rescueBtn.active { background:#c0392b; }
+/* Level clear */
+#lvOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); align-items:center; justify-content:center; z-index:50; flex-direction:column; gap:14px; }
+#lvOverlay.show { display:flex; }
+.lv-box { background:#16213e; border:5px solid #ffd700; box-shadow:8px 8px 0 #000; padding:24px 30px; text-align:center; max-width:340px; width:90%; }
+.lv-title { font-size:20px; color:#ffd700; margin-bottom:10px; }
+.lv-sub   { font-size:11px; color:#ddd; line-height:2.4; }
+</style>
+</head>
+<body>
+
+<canvas id="sparkleCanvas"></canvas>
+
+<!-- START -->
+<div id="startScreen" class="screen active">
+  <div class="title-box">
+    <div class="title-main">🐾 貓咪健康大作戰</div>
+    <div class="title-sub">CAT NUTRITION QUEST</div>
+  </div>
+  <div class="start-mid">
+    <canvas id="startCat" width="110" height="110"></canvas>
+    <div class="start-rules">
+      ▶ <b>消除</b>3個以上相同食物<br>
+      ▶ 補滿<b>5大營養素</b>過關<br>
+      ▶ 每關增加<b>垃圾食物</b>障礙<br>
+      ▶ 無法移動<b>遊戲結束</b>
+    </div>
+  </div>
+  <div class="food-legend" id="foodLegend"></div>
+  <input type="text" id="playerNameInput" placeholder="輸入你的名字…" maxlength="8">
+  <div class="btn-row">
+    <button class="px-btn green" onclick="startGame()">▶ 開始遊戲</button>
+    <button class="px-btn blue"  onclick="showLeaderboard('start')">🏆 排行榜</button>
+  </div>
+  <button class="px-btn" onclick="openCollection()" style="background:#8e44ad;font-size:12px;width:100%">🐾 貓咪收藏冊</button>
+</div>
+
+<!-- GAME -->
+<div id="gameScreen" class="screen">
+  <div class="game-topbar">
+    <div class="level-badge" id="levelBadge">LEVEL 1</div>
+    <div class="score-pills">
+      <div class="score-pill"><div class="score-pill-val" id="scoreDisp">0</div><div class="score-pill-lbl">得分</div></div>
+      <div class="score-pill"><div class="score-pill-val" id="comboDisp">0</div><div class="score-pill-lbl">連消</div></div>
+    </div>
+  </div>
+  <div class="nut-section px-box" style="padding:10px" id="nutSection"></div>
+  <canvas id="gameCanvas"></canvas>
+  <div class="junk-notice" id="junkNotice"></div>
+  <div class="cat-row">
+    <div style="flex-shrink:0;border:3px solid #444;box-shadow:3px 3px 0 #000;">
+      <canvas id="catCanvas" width="110" height="80" style="display:block;"></canvas>
+    </div>
+    <div class="cat-speech" id="msgBox">消除健康食物補充營養！</div>
+  </div>
+  <div class="btn-row">
+    <button class="px-btn grey" id="rescueBtn" onclick="activateRescue()" style="font-size:11px;display:none;align-items:center;gap:4px"><img id="rescueBtnIcon" width="28" height="28" style="image-rendering:pixelated;display:block" src=""><span id="rescueBtnText">大餐包×0</span></button>
+    <button class="px-btn grey" id="hintBtn" onclick="useHint()" style="font-size:11px">💡 提示×<span id="hintCount">1</span></button>
+    <button class="px-btn grey" onclick="confirmQuit()" style="font-size:11px">離開</button>
+  </div>
+</div>
+
+<!-- LEVEL CLEAR -->
+<div id="lvOverlay">
+  <div class="lv-box">
+    <div class="lv-title" id="lvTitle">LEVEL CLEAR!</div>
+    <canvas id="clearCat" width="100" height="100" style="display:block;margin:10px auto;border:3px solid #ffd700;box-shadow:3px 3px 0 #000;"></canvas>
+    <div class="lv-sub" id="lvSub"></div>
+    <div id="lvRescueNotice" style="display:none;margin-top:10px;padding:12px 16px;background:rgba(230,126,34,.25);border:2px solid #e67e22;text-align:center">
+      <img id="lvRescueIcon" width="72" height="72" style="image-rendering:pixelated;display:block;margin:0 auto 8px" src="">
+      <span style="font-size:14px;color:#ffd700;display:block">獲得大餐救援包！</span>
+      <span style="font-size:11px;color:#ffa;display:block;margin-top:4px">幫你對抗你的飲食負擔！</span>
+    </div>
+  </div>
+  <button class="px-btn green" onclick="nextLevel()">▶ 下一關！</button>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameOverScreen" class="screen">
+  <canvas id="overCat" width="120" height="120" style="border:4px solid #e94560;box-shadow:4px 4px 0 #000;"></canvas>
+  <div class="go-title">GAME OVER</div>
+  <div class="go-score" id="goScore">0</div>
+  <div class="go-detail" id="goDetail"></div>
+  <div class="go-rank" id="goRank"></div>
+  <div class="btn-row">
+    <button class="px-btn green" onclick="startGame()">▶ 再玩一次</button>
+    <button class="px-btn blue"  onclick="showLeaderboard('over')">🏆 排行榜</button>
+  </div>
+  <button class="px-btn" onclick="openCollection()" style="background:#8e44ad;font-size:12px">🐾 貓咪收藏冊</button>
+</div>
+
+<!-- CAT COLLECTION -->
+<div id="collectionOverlay">
+  <div class="col-title">🐾 貓咪收藏冊</div>
+  <div class="col-subtitle">每 3 萬分解鎖一隻新貓咪！</div>
+  <div class="col-grid" id="colGrid"></div>
+  <div id="colProgress" style="font-size:10px;color:#aaa;text-align:center"></div>
+  <button class="px-btn grey" onclick="closeCollection()" style="font-size:12px;margin-top:6px">✕ 關閉</button>
+</div>
+
+<!-- UNLOCK POPUP -->
+<div id="unlockPopup">
+  <div class="unlock-box">
+    <div class="unlock-title">✨ 新貓咪解鎖！✨</div>
+    <canvas id="unlockImg" width="100" height="100" style="image-rendering:pixelated;display:block;margin:0 auto;border:3px solid #ffd700;box-shadow:3px 3px 0 #000"></canvas>
+    <div class="unlock-name" id="unlockName"></div>
+  </div>
+  <button class="px-btn green" onclick="closeUnlockPopup()" style="font-size:12px">太棒了！喵～</button>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="leaderboardScreen" class="screen">
+  <div class="lb-title">🏆 LEADERBOARD</div>
+  <div class="px-box" style="padding:6px;width:100%" id="lbContent"></div>
+  <div class="btn-row">
+    <button class="px-btn green" onclick="lbBack()">◀ 返回</button>
+    <button class="px-btn grey"  onclick="clearLB()">清除紀錄</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════
+//  CONFIG
+// ══════════════════════════════
+const COLS=7, ROWS=8, CELL=48, GAP=2;
+const CW=COLS*CELL+(COLS+1)*GAP, CH=ROWS*CELL+(ROWS+1)*GAP;
+const HEALTHY=5;
+const JUNK_IDS=[5,6,7,8,9];
+const FOOD_NAMES=['全穀飯','魚蛋肉','花椰菜','水果','鮮奶','薯條','糖果','珍奶','洋芋片','甜甜圈'];
+const NUT_DEF=[
+  {name:'碳水化合物',color:'#f5c518',contrib:[22,1,3,8,5]},
+  {name:'蛋白質',    color:'#e0e0e0',contrib:[4,28,2,2,14]},
+  {name:'健康脂肪',  color:'#ff9800',contrib:[2,6,1,1,22]},
+  {name:'維生素',    color:'#9c27b0',contrib:[2,3,28,16,2]},
+  {name:'膳食纖維',  color:'#4caf50',contrib:[9,0,12,16,0]},
+];
+
+const CAT_MSGS=[
+  '好好吃哦！喵～','謝謝主人餵我！喵嗚～','再來一個！喵～',
+  '主人最棒了 ♡ 喵嗚～','(*≧ω≦) 超開心！喵～','ฅ^•ﻌ•^ฅ 肚子飽飽！喵嗚～',
+  '嗷嗚！好好吃！喵～','繼續餵我！喵嗚～','(=^･ω･^=) 喵～',
+  '好幸福 ♡ 喵嗚～','主人快多餵一點！喵～','我愛主人！喵嗚～',
+  '喵喵喵！超好吃！喵～','嗚嗚嗚，好滿足！喵嗚～',
+];
+
+// ══════════════════════════════
+//  CAT SPRITE FROM PNG
+// ══════════════════════════════
+const catImg = new Image();
+let catSprites = null;   // [{x,y,w,h}] × 10: 0-4=sitting, 5-9=lying
+let catSrc = null;       // offscreen canvas with white → transparent
+let catPose = 'sit';
+let poseTimerId = null;
+
+catImg.src = '貪吃橘貓.png';
+catImg.onload = () => {
+  const W = catImg.naturalWidth, H = catImg.naturalHeight;
+  const tmp = document.createElement('canvas');
+  tmp.width = W; tmp.height = H;
+  const ctx = tmp.getContext('2d');
+  ctx.drawImage(catImg, 0, 0);
+  const id = ctx.getImageData(0, 0, W, H);
+  const d = id.data;
+
+  // Flood-fill from all border pixels to remove background
+  const isBg = idx => d[idx+3] > 20 && d[idx] > 200 && d[idx+1] > 200 && d[idx+2] > 200;
+  const visited = new Uint8Array(W * H);
+  const stack = [];
+  const seed = (x, y) => { const k = y*W+x; if (!visited[k] && isBg(k*4)) { visited[k]=1; stack.push(k); } };
+  for (let x = 0; x < W; x++) { seed(x, 0); seed(x, H-1); }
+  for (let y = 0; y < H; y++) { seed(0, y); seed(W-1, y); }
+  while (stack.length) {
+    const k = stack.pop(), x = k%W, y = (k/W)|0;
+    d[k*4+3] = 0;
+    if (x>0)   seed(x-1, y);
+    if (x<W-1) seed(x+1, y);
+    if (y>0)   seed(x, y-1);
+    if (y<H-1) seed(x, y+1);
+  }
+  // 2-pass fringe erosion: remove any remaining light pixels touching transparent
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < W * H; i++) {
+      if (d[i*4+3] === 0) continue;
+      if (d[i*4] < 170 || d[i*4+1] < 170 || d[i*4+2] < 170) continue; // colored cat pixel
+      const px2 = i%W, py2 = (i/W)|0;
+      if ((px2>0 && d[(i-1)*4+3]===0) || (px2<W-1 && d[(i+1)*4+3]===0) ||
+          (py2>0 && d[(i-W)*4+3]===0) || (py2<H-1 && d[(i+W)*4+3]===0))
+        d[i*4+3] = 0;
+    }
+  }
+
+  ctx.putImageData(id, 0, 0);
+  catSrc = tmp;
+  catSprites = detectCatSprites(d, W, H);
+  drawCatSprite(document.getElementById('startCat'), 1, 'sit');
+};
+
+function detectCatSprites(px, W, H) {
+  const blank = (x, y) => {
+    const i = (y * W + x) * 4;
+    return px[i+3] < 20 || (px[i] > 200 && px[i+1] > 200 && px[i+2] > 200);
+  };
+  const rowHas = Array.from({length:H}, (_,y) => { for(let x=0;x<W;x++) if(!blank(x,y)) return true; return false; });
+  const bands = [];
+  let rs = -1;
+  for (let y = 0; y <= H; y++) {
+    if (rs < 0 && y < H && rowHas[y]) rs = y;
+    else if (rs >= 0 && (y === H || !rowHas[y])) { bands.push([rs, y-1]); rs = -1; }
+  }
+  const sprites = [];
+  bands.forEach(([ry1, ry2]) => {
+    const colHas = Array.from({length:W}, (_,x) => { for(let y=ry1;y<=ry2;y++) if(!blank(x,y)) return true; return false; });
+    const groups = []; let gs = -1;
+    for (let x = 0; x <= W; x++) {
+      if (gs < 0 && x < W && colHas[x]) gs = x;
+      else if (gs >= 0 && (x === W || !colHas[x])) { groups.push([gs, x-1]); gs = -1; }
+    }
+    groups.forEach(([cx1, cx2]) => {
+      let minY = ry2, maxY = ry1;
+      for (let y = ry1; y <= ry2; y++)
+        for (let x = cx1; x <= cx2; x++)
+          if (!blank(x, y)) { minY = Math.min(minY, y); maxY = Math.max(maxY, y); break; }
+      sprites.push({x:cx1, y:minY, w:cx2-cx1+1, h:maxY-minY+1});
+    });
+  });
+  return sprites;
+}
+
+function catStage(level) { return Math.min(4, level - 1); }
+
+function drawCatSprite(canvas, level, pose, bg) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  if (bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H); }
+  if (!catSprites || !catSrc) return;
+  const stage = catStage(level);
+  const sitSp = catSprites[stage] || catSprites[0];
+  const lieSp = catSprites[5 + stage] || catSprites[5];
+  const sp = pose === 'lie' ? lieSp : sitSp;
+
+  // Use sitting sprite to determine base scale so both poses appear same-size cat
+  const pad = 6;
+  const baseScale = Math.min((W - pad*2) / sitSp.w, (H - pad*2) / sitSp.h);
+  const dw = sp.w * baseScale, dh = sp.h * baseScale;
+  const dx = (W - dw) / 2, dy = (H - dh) / 2;
+
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(catSrc, sp.x, sp.y, sp.w, sp.h, dx, dy, dw, dh);
+}
+
+function startPoseCycle() {
+  stopPoseCycle();
+  const cycle = () => {
+    catPose = Math.random() < 0.45 ? 'lie' : 'sit';
+    const cc = document.getElementById('catCanvas');
+    if (cc) drawCatSprite(cc, level, catPose, '#16213e');
+    poseTimerId = setTimeout(cycle, 2000 + Math.random() * 3000);
+  };
+  poseTimerId = setTimeout(cycle, 3000);
+}
+function stopPoseCycle() { if (poseTimerId) { clearTimeout(poseTimerId); poseTimerId = null; } }
+
+
+// ══════════════════════════════
+//  SOUND EFFECTS
+// ══════════════════════════════
+const sfx = {};
+['選項','過關','消一格','連消兩格','連消三格','連消四格以上','道具','垃圾'].forEach(n => { sfx[n] = new Audio(`${n}.mp3`); });
+function playSfx(name) { try { const a=sfx[name]; if(!a)return; a.currentTime=0; a.play().catch(()=>{}); } catch(e){} }
+// Play selection sound on any button hover
+document.addEventListener('mouseenter', e => { if (e.target.closest('button')) playSfx('選項'); }, true);
+
+// ── keep Web Audio meow as fallback (unused if mp3s load)
+let audioCtx = null;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playMeow() {
+  try {
+    initAudio();
+    const now = audioCtx.currentTime;
+    const dur = 0.55;
+
+    // Sawtooth for vocal harmonics
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sawtooth';
+    // Pitch: "mee" rises fast → "oww" falls slowly (cat meow contour)
+    osc.frequency.setValueAtTime(420, now);
+    osc.frequency.exponentialRampToValueAtTime(820, now + 0.09);  // fast rise "ee"
+    osc.frequency.exponentialRampToValueAtTime(560, now + 0.22);  // "oh" onset
+    osc.frequency.exponentialRampToValueAtTime(360, now + dur);   // "ww" trail-off
+
+    // Soft-clip waveshaper → less buzzy, more warm/vocal
+    const shaper = audioCtx.createWaveShaper();
+    const n = 256; const curve = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const x = (i * 2 / n) - 1;
+      curve[i] = (3 * x) / (1 + 2 * Math.abs(x)); // soft knee
+    }
+    shaper.curve = curve;
+
+    // Formant F1 — "ee"(high) → "ow"(low) vowel transition
+    const f1 = audioCtx.createBiquadFilter();
+    f1.type = 'bandpass'; f1.Q.value = 7;
+    f1.frequency.setValueAtTime(2200, now);
+    f1.frequency.exponentialRampToValueAtTime(780, now + 0.35);
+
+    // Formant F2 — body resonance
+    const f2 = audioCtx.createBiquadFilter();
+    f2.type = 'bandpass'; f2.Q.value = 4;
+    f2.frequency.setValueAtTime(900, now);
+    f2.frequency.exponentialRampToValueAtTime(480, now + 0.4);
+
+    // Mix both formants
+    const mix = audioCtx.createGain(); mix.gain.value = 0.5;
+
+    // Master envelope
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.38, now + 0.03);
+    gain.gain.setValueAtTime(0.38, now + 0.14);
+    gain.gain.linearRampToValueAtTime(0.22, now + 0.32);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+    osc.connect(shaper);
+    shaper.connect(f1); shaper.connect(f2);
+    f1.connect(mix); f2.connect(mix);
+    mix.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(now); osc.stop(now + dur);
+  } catch(e) {}
+}
+
+// ══════════════════════════════
+//  RESCUE PACK
+// ══════════════════════════════
+const rescueImg = new Image();
+let rescueSrc = null;
+rescueImg.src = '大餐救援包.png';
+rescueImg.onload = () => {
+  const W=rescueImg.naturalWidth, H=rescueImg.naturalHeight;
+  const tmp=document.createElement('canvas'); tmp.width=W; tmp.height=H;
+  const ctx=tmp.getContext('2d'); ctx.drawImage(rescueImg,0,0);
+  const id=ctx.getImageData(0,0,W,H); const d=id.data;
+  const isBg=idx=>d[idx+3]>20&&d[idx]>200&&d[idx+1]>200&&d[idx+2]>200;
+  const visited=new Uint8Array(W*H); const stack=[];
+  const seed=(x,y)=>{const k=y*W+x;if(!visited[k]&&isBg(k*4)){visited[k]=1;stack.push(k);}};
+  for(let x=0;x<W;x++){seed(x,0);seed(x,H-1);}
+  for(let y=0;y<H;y++){seed(0,y);seed(W-1,y);}
+  while(stack.length){const k=stack.pop(),x=k%W,y=(k/W)|0;d[k*4+3]=0;if(x>0)seed(x-1,y);if(x<W-1)seed(x+1,y);if(y>0)seed(x,y-1);if(y<H-1)seed(x,y+1);}
+  for(let pass=0;pass<2;pass++)for(let i=0;i<W*H;i++){if(d[i*4+3]===0)continue;if(d[i*4]<170||d[i*4+1]<170||d[i*4+2]<170)continue;const px=i%W,py=(i/W)|0;if((px>0&&d[(i-1)*4+3]===0)||(px<W-1&&d[(i+1)*4+3]===0)||(py>0&&d[(i-W)*4+3]===0)||(py<H-1&&d[(i+W)*4+3]===0))d[i*4+3]=0;}
+  ctx.putImageData(id,0,0); rescueSrc=tmp;
+  updateItemDisplay();
+};
+let rescueItems = 0, rescueMode = false;
+let hintCount = 1;
+
+function activateRescue() {
+  if (rescueItems <= 0 && !rescueMode) return;
+  rescueMode = !rescueMode;
+  updateItemDisplay();
+  setMsg(rescueMode ? '點擊紅色垃圾食物方塊來消除！' : '取消使用救援包');
+  renderBoard();
+}
+
+async function useRescueOnCell(r, c) {
+  busy = true;
+  board[r][c] = null;
+  rescueItems--;
+  rescueMode = false;
+  updateItemDisplay();
+  playSfx('垃圾'); setMsg('💥 大餐救援包！垃圾食物消除了！喵嗚～');
+  await gravity();
+  renderBoard();
+  // Check if falling tiles formed new matches and process them
+  const m = findMatches();
+  if (m.length) {
+    await processMatches(m);
+  }
+  busy = false;
+  if (!hasAnyMove()) checkDeadlock();
+}
+
+function checkDeadlock() {
+  const hasJunk = board.flat().some(v => isJunk(v));
+  if (rescueItems > 0 && hasJunk) {
+    setMsg('⚠ 無法移動！使用大餐救援包消除垃圾食物！喵嗚～');
+  } else if (!hasAnyMove()) {
+    const flat = board.flat().filter(v => isHealthy(v));
+    if (flat.length > 0) shuffleBoard(); else endGame();
+  }
+}
+
+function updateItemDisplay() {
+  updateHintDisplay();
+  const btn = document.getElementById('rescueBtn');
+  if (!btn) return;
+  if (rescueItems > 0 || rescueMode) {
+    btn.style.display = 'flex';
+    btn.className = 'px-btn grey' + (rescueMode ? ' active' : '');
+    document.getElementById('rescueBtnText').textContent = rescueMode ? '取消' : `大餐包×${rescueItems}`;
+    const icon = document.getElementById('rescueBtnIcon');
+    if (icon && rescueSrc && !icon.src.startsWith('data:')) icon.src = rescueSrc.toDataURL();
+  } else {
+    btn.style.display = 'none';
+    rescueMode = false;
+  }
+}
+
+// ══════════════════════════════
+//  FOOD DRAWING
+// ══════════════════════════════
+function drawFood(ctx,x,y,size,id){
+  const s=size,cx=x+s/2,cy=y+s/2;
+  switch(id){
+    case 0:{ // Rice bowl
+      ctx.fillStyle='#fffde7';
+      ctx.beginPath(); ctx.ellipse(cx,cy-s*.12,s*.36,s*.22,0,Math.PI,0); ctx.fill();
+      ctx.fillStyle='#fff';
+      [[-s*.12,-s*.05],[s*.04,-s*.12],[s*.14,-s*.04]].forEach(([dx,dy])=>{ctx.beginPath(); ctx.arc(cx+dx,cy+dy,s*.04,0,Math.PI*2); ctx.fill();});
+      ctx.fillStyle='#a1887f';
+      ctx.beginPath(); ctx.moveTo(cx-s*.36,cy-s*.06); ctx.bezierCurveTo(cx-s*.36,cy+s*.28,cx+s*.36,cy+s*.28,cx+s*.36,cy-s*.06); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#d4a878'; ctx.beginPath(); ctx.ellipse(cx,cy-s*.06,s*.37,s*.07,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#6d4c41'; ctx.beginPath(); ctx.ellipse(cx,cy+s*.3,s*.2,s*.05,0,0,Math.PI*2); ctx.fill();
+      break;
+    }
+    case 1:{ // Fish
+      const fy=cy+s*.02;
+      ctx.fillStyle='#4fc3f7'; ctx.beginPath(); ctx.moveTo(cx+s*.28,fy); ctx.lineTo(cx+s*.46,fy-s*.18); ctx.lineTo(cx+s*.46,fy+s*.18); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#ff8a65'; ctx.beginPath(); ctx.ellipse(cx,fy,s*.34,s*.18,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#ffccbc'; ctx.beginPath(); ctx.ellipse(cx-s*.04,fy+s*.06,s*.22,s*.08,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#ff7043'; ctx.beginPath(); ctx.moveTo(cx-s*.04,fy-s*.18); ctx.lineTo(cx+s*.1,fy-s*.32); ctx.lineTo(cx+s*.18,fy-s*.18); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(cx-s*.18,fy-s*.04,s*.055,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(cx-s*.17,fy-s*.04,s*.03,0,Math.PI*2); ctx.fill();
+      break;
+    }
+    case 2:{ // Broccoli - thick pale-green stem + tight dome of florets
+      // Stem
+      ctx.fillStyle='#c5e1a5'; ctx.fillRect(cx-s*.09,cy+s*.05,s*.18,s*.28);
+      ctx.fillStyle='#aed581'; ctx.beginPath(); ctx.ellipse(cx,cy+s*.32,s*.18,s*.07,0,0,Math.PI*2); ctx.fill();
+      // Tight cluster of florets forming a dome
+      const FL=[[cx,cy-s*.08,s*.2],[cx-s*.14,cy-s*.01,s*.16],[cx+s*.14,cy-s*.01,s*.16],[cx-s*.07,cy-s*.2,s*.15],[cx+s*.07,cy-s*.2,s*.15],[cx-s*.2,cy+s*.06,s*.12],[cx+s*.2,cy+s*.06,s*.12],[cx,cy+s*.04,s*.13]];
+      FL.forEach(([fx,fy,fr])=>{ctx.fillStyle='#2e7d32'; ctx.beginPath(); ctx.arc(fx,fy,fr,0,Math.PI*2); ctx.fill();});
+      FL.forEach(([fx,fy,fr])=>{ctx.fillStyle='#43a047'; ctx.beginPath(); ctx.arc(fx,fy,fr*.8,0,Math.PI*2); ctx.fill();});
+      FL.forEach(([fx,fy,fr])=>{ctx.fillStyle='#66bb6a'; ctx.beginPath(); ctx.arc(fx-fr*.18,fy-fr*.2,fr*.4,0,Math.PI*2); ctx.fill();});
+      break;
+    }
+    case 3:{ // Apple
+      const ay=cy+s*.06;
+      ctx.fillStyle='#ef5350'; ctx.beginPath(); ctx.arc(cx,ay,s*.35,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.25)'; ctx.beginPath(); ctx.ellipse(cx-s*.1,ay-s*.1,s*.11,s*.07,-.5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#1a1a2e'; ctx.beginPath(); ctx.arc(cx,ay-s*.32,s*.06,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#5d4037'; ctx.lineWidth=s*.04; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(cx,ay-s*.36); ctx.quadraticCurveTo(cx+s*.1,ay-s*.46,cx+s*.14,ay-s*.4); ctx.stroke();
+      ctx.fillStyle='#4caf50';
+      ctx.beginPath(); ctx.moveTo(cx+s*.05,ay-s*.4); ctx.quadraticCurveTo(cx+s*.22,ay-s*.5,cx+s*.2,ay-s*.34); ctx.quadraticCurveTo(cx+s*.1,ay-s*.36,cx+s*.05,ay-s*.4); ctx.fill();
+      break;
+    }
+    case 4:{ // Milk bottle (not house shape)
+      // Bottle body
+      ctx.fillStyle='#e3f2fd'; ctx.strokeStyle='#90caf9'; ctx.lineWidth=s*.04;
+      ctx.beginPath();
+      ctx.moveTo(cx-s*.22,cy+s*.32); ctx.quadraticCurveTo(cx-s*.3,cy+s*.32,cx-s*.3,cy+s*.05);
+      ctx.quadraticCurveTo(cx-s*.28,cy-s*.1,cx-s*.14,cy-s*.18);
+      ctx.lineTo(cx-s*.1,cy-s*.3); ctx.lineTo(cx+s*.1,cy-s*.3);
+      ctx.lineTo(cx+s*.14,cy-s*.18); ctx.quadraticCurveTo(cx+s*.28,cy-s*.1,cx+s*.3,cy+s*.05);
+      ctx.quadraticCurveTo(cx+s*.3,cy+s*.32,cx+s*.22,cy+s*.32);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      // Cap
+      ctx.fillStyle='#1565c0'; ctx.beginPath(); ctx.roundRect(cx-s*.1,cy-s*.38,s*.2,s*.1,s*.03); ctx.fill();
+      // Milk content (white lower half)
+      ctx.fillStyle='rgba(255,255,255,.5)'; ctx.beginPath(); ctx.ellipse(cx,cy+s*.12,s*.22,s*.24,0,0,Math.PI*2); ctx.fill();
+      // Blue stripe
+      ctx.fillStyle='#1565c0'; ctx.globalAlpha=.4; ctx.fillRect(cx-s*.26,cy-s*.04,s*.52,s*.1); ctx.globalAlpha=1;
+      break;
+    }
+    case 5:{ // Fries
+      const fc=['#ffa000','#ffb300','#ff8f00','#ffa000','#ffcc02'];
+      fc.forEach((c,i)=>{ctx.fillStyle=c; const fx=x+s*(.1+i*.17),fh=s*(.12+(i%2)*.09); ctx.fillRect(fx,y+s*.05,s*.09,fh);});
+      ctx.fillStyle='#e53935'; ctx.beginPath(); ctx.roundRect(x+s*.06,y+s*.28,s*.88,s*.62,s*.04); ctx.fill();
+      ctx.fillStyle='#ef9a9a'; ctx.fillRect(x+s*.1,y+s*.32,s*.8,s*.07);
+      ctx.fillStyle='#ffd700'; ctx.font=`bold ${Math.round(s*.26)}px sans-serif`; ctx.textAlign='center'; ctx.fillText('M',cx,y+s*.78);
+      break;
+    }
+    case 6:{ // Chocolate chip cookie
+      // Cookie base — warm tan
+      ctx.fillStyle='#c8914a'; ctx.beginPath(); ctx.arc(cx,cy,s*.37,0,Math.PI*2); ctx.fill();
+      // Baked edge (slightly darker ring)
+      ctx.strokeStyle='#9c6428'; ctx.lineWidth=s*.045;
+      ctx.beginPath(); ctx.arc(cx,cy,s*.37,0,Math.PI*2); ctx.stroke();
+      // Lighter golden center
+      ctx.fillStyle='#d9a85c'; ctx.beginPath(); ctx.arc(cx,cy,s*.27,0,Math.PI*2); ctx.fill();
+      // Surface bumps (crinkle texture)
+      ctx.fillStyle='#bf8238'; ctx.globalAlpha=.5;
+      [[-.18,-.14],[.14,-.18],[.2,.08],[-.08,.2],[.04,-.3],[-.24,.04]].forEach(([dx,dy])=>{
+        ctx.beginPath(); ctx.ellipse(cx+dx*s,cy+dy*s,s*.05,s*.035,dx,0,Math.PI*2); ctx.fill();
+      });
+      ctx.globalAlpha=1;
+      // Chocolate chips
+      [[-.12,-.1],[.13,-.17],[.08,.12],[-.18,.1],[.22,.04],[-.04,-.26],[.2,-.06]].forEach(([dx,dy])=>{
+        ctx.fillStyle='#3b1f05';
+        ctx.beginPath(); ctx.ellipse(cx+dx*s,cy+dy*s,s*.058,s*.042,-0.3,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='#6b3a10'; ctx.globalAlpha=.6;
+        ctx.beginPath(); ctx.ellipse(cx+dx*s-s*.01,cy+dy*s-s*.01,s*.025,s*.018,-0.3,0,Math.PI*2); ctx.fill();
+        ctx.globalAlpha=1;
+      });
+      break;
+    }
+    case 7:{ // Bubble tea
+      ctx.fillStyle='#ff9800'; ctx.fillRect(cx+s*.08,y,s*.08,s*.36);
+      ctx.fillStyle='rgba(230,230,255,.55)'; ctx.beginPath(); ctx.ellipse(cx,y+s*.2,s*.28,s*.14,0,Math.PI,0); ctx.fill();
+      ctx.strokeStyle='#bbb'; ctx.lineWidth=s*.025; ctx.stroke();
+      ctx.fillStyle='#f3e5f5';
+      ctx.beginPath(); ctx.moveTo(cx-s*.28,y+s*.2); ctx.lineTo(cx-s*.23,y+s*.84); ctx.quadraticCurveTo(cx,y+s*.91,cx+s*.23,y+s*.84); ctx.lineTo(cx+s*.28,y+s*.2); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle='#ce93d8'; ctx.lineWidth=s*.025; ctx.stroke();
+      ctx.fillStyle='#a1887f';
+      ctx.beginPath(); ctx.moveTo(cx-s*.25,y+s*.26); ctx.lineTo(cx-s*.21,y+s*.8); ctx.quadraticCurveTo(cx,y+s*.86,cx+s*.21,y+s*.8); ctx.lineTo(cx+s*.25,y+s*.26); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#3e2723';
+      [[-.12,.64],[0,.67],[.12,.64],[-.07,.73],[.07,.73]].forEach(([dx,dy])=>{ctx.beginPath(); ctx.arc(cx+dx*s,y+dy*s,s*.055,0,Math.PI*2); ctx.fill();});
+      break;
+    }
+    case 8:{ // Chips bag
+      ctx.fillStyle='#ffd54f'; ctx.strokeStyle='#ff6f00'; ctx.lineWidth=s*.04;
+      ctx.beginPath(); ctx.moveTo(cx-s*.14,y+s*.04); ctx.lineTo(cx+s*.14,y+s*.04); ctx.lineTo(cx+s*.27,y+s*.88); ctx.lineTo(cx-s*.27,y+s*.88); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#ff6f00'; ctx.fillRect(cx-s*.14,y,s*.28,s*.06); ctx.fillRect(cx-s*.27,y+s*.87,s*.54,s*.07);
+      ctx.globalAlpha=.5; ctx.fillStyle='#ff6f00';
+      [[0,s*.3,s*.12],[cx-cx-.1*s,s*.5,s*.1],[.1*s,s*.52,s*.1]].forEach(([dx,dy,r])=>{ctx.beginPath(); ctx.ellipse(cx+dx,y+dy,r,r*.55,0,0,Math.PI*2); ctx.fill();}); ctx.globalAlpha=1;
+      break;
+    }
+    case 9:{ // Donut
+      const dy2=cy+s*.04;
+      ctx.fillStyle='#f5a623'; ctx.beginPath(); ctx.arc(cx,dy2,s*.32,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#f48fb1'; ctx.beginPath(); ctx.arc(cx,dy2,s*.3,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#1a1a2e'; ctx.beginPath(); ctx.arc(cx,dy2,s*.11,0,Math.PI*2); ctx.fill();
+      [{x:-.12,y:-.15,a:.5,c:'#f44336'},{x:.12,y:-.18,a:-.3,c:'#2196f3'},{x:.18,y:.05,a:1.2,c:'#ffeb3b'},{x:-.16,y:.12,a:-.8,c:'#4caf50'},{x:.05,y:.2,a:.2,c:'#9c27b0'}].forEach(sp=>{
+        ctx.save(); ctx.translate(cx+sp.x*s,dy2+sp.y*s); ctx.rotate(sp.a); ctx.fillStyle=sp.c; ctx.fillRect(-s*.025,-s*.07,s*.05,s*.12); ctx.restore();
+      });
+      break;
+    }
+  }
+}
+
+// ══════════════════════════════
+//  SPARKLE PARTICLE SYSTEM
+// ══════════════════════════════
+const SC=document.getElementById('sparkleCanvas');
+const SX=SC.getContext('2d');
+let particles=[], raf=null;
+
+function resizeSparkle(){SC.width=window.innerWidth; SC.height=window.innerHeight;}
+window.addEventListener('resize',resizeSparkle); resizeSparkle();
+
+function spawnParticles(matchedCells){
+  const gRect=document.getElementById('gameCanvas').getBoundingClientRect();
+  const catRect=document.getElementById('catCanvas').getBoundingClientRect();
+  const scaleX=gRect.width/CW, scaleY=gRect.height/CH;
+  const tX=catRect.left+catRect.width/2, tY=catRect.top+catRect.height/2;
+  matchedCells.forEach(({r,c})=>{
+    const px=gRect.left+(GAP+c*(CELL+GAP)+CELL/2)*scaleX;
+    const py=gRect.top+(GAP+r*(CELL+GAP)+CELL/2)*scaleY;
+    for(let i=0;i<3;i++){
+      particles.push({
+        x:px+(Math.random()-.5)*16, y:py+(Math.random()-.5)*16,
+        tx:tX+(Math.random()-.5)*24, ty:tY+(Math.random()-.5)*24,
+        life:1.0, decay:.022+Math.random()*.01,
+        size:7+Math.random()*5,
+        color:['#ffd700','#ff9800','#ff6b35','#fff176','#ffe082','#ffeb3b'][Math.floor(Math.random()*6)],
+      });
+    }
+  });
+  if(!raf) rafLoop();
+}
+
+function rafLoop(){
+  SX.clearRect(0,0,SC.width,SC.height);
+  particles=particles.filter(p=>p.life>0);
+  particles.forEach(p=>{
+    p.x+=(p.tx-p.x)*.07; p.y+=(p.ty-p.y)*.07; p.life-=p.decay;
+    SX.globalAlpha=Math.max(0,p.life);
+    SX.fillStyle=p.color;
+    drawSparkle(SX,p.x,p.y,p.size*Math.max(.3,p.life));
+    SX.globalAlpha=1;
+  });
+  if(particles.length>0) raf=requestAnimationFrame(rafLoop);
+  else{raf=null; SX.clearRect(0,0,SC.width,SC.height);}
+}
+
+function drawSparkle(ctx,x,y,r){
+  ctx.beginPath();
+  for(let i=0;i<8;i++){
+    const a=(i/8)*Math.PI*2-Math.PI/8;
+    const ri=i%2===0?r:r*.35;
+    i===0?ctx.moveTo(x+Math.cos(a)*ri,y+Math.sin(a)*ri):ctx.lineTo(x+Math.cos(a)*ri,y+Math.sin(a)*ri);
+  }
+  ctx.closePath(); ctx.fill();
+}
+
+// ══════════════════════════════
+//  GAME STATE
+// ══════════════════════════════
+let board=[],selected=null,busy=false;
+let score=0,combo=0,maxCombo=0,totalMatches=0;
+let level=1,nutrition=[0,0,0,0,0];
+let playerName='貓奴',prevScreen='start';
+let leaderboard=JSON.parse(localStorage.getItem('catHL4')||'[]');
+let gameCanvas,gameCtx;
+let pointerStart=null;
+
+function isJunk(v){return v!=null&&v>=HEALTHY;}
+function isHealthy(v){return v!=null&&v<HEALTHY;}
+function nutProgress(){return nutrition.reduce((s,n)=>s+Math.min(100,n),0)/5;}
+function allFull(){return nutrition.every(n=>n>=100);}
+
+// ══════════════════════════════
+//  SCREENS
+// ══════════════════════════════
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo(0,0);}
+
+// ══════════════════════════════
+//  INIT
+// ══════════════════════════════
+window.onload=()=>{
+  // startCat drawn in catImg.onload
+  const leg=document.getElementById('foodLegend');
+  const legendFoodIds=[0,1,4,3,2]; // swap broccoli(2)↔milk(4) so legend matches nutrition labels
+  for(let i=0;i<HEALTHY;i++){
+    const wrap=document.createElement('div'); wrap.className='legend-item';
+    const c=document.createElement('canvas'); c.width=c.height=44;
+    const ctx=c.getContext('2d'); ctx.fillStyle='#16213e'; ctx.fillRect(0,0,44,44);
+    drawFood(ctx,1,1,42,legendFoodIds[i]); wrap.appendChild(c);
+    const lbl=document.createElement('div'); lbl.textContent=NUT_DEF[i].name; wrap.appendChild(lbl); leg.appendChild(wrap);
+  }
+  gameCanvas=document.getElementById('gameCanvas');
+  gameCanvas.width=CW; gameCanvas.height=CH;
+  gameCtx=gameCanvas.getContext('2d');
+  // Match nutSection width to game canvas (canvas draws at CW; border adds 8px each side = CW+8)
+  document.getElementById('nutSection').style.width=(CW+8)+'px';
+  setupPointerEvents();
+  show('startScreen');
+};
+
+// ══════════════════════════════
+//  POINTER EVENTS (click + drag)
+// ══════════════════════════════
+function setupPointerEvents(){
+  gameCanvas.addEventListener('pointerdown',e=>{
+    initAudio();
+    if(busy)return;
+    const {r,c}=canvasPos(e);
+    if(r<0||r>=ROWS||c<0||c>=COLS)return;
+    if(!rescueMode&&isJunk(board[r][c]))return; // junk tiles cannot be dragged
+    pointerStart={r,c,x:e.clientX,y:e.clientY,moved:false};
+    gameCanvas.setPointerCapture(e.pointerId);
+  });
+  gameCanvas.addEventListener('pointermove',e=>{
+    if(!pointerStart||busy)return;
+    const dx=e.clientX-pointerStart.x, dy=e.clientY-pointerStart.y;
+    const scale=gameCanvas.getBoundingClientRect().width/CW;
+    const thr=CELL*scale*.38;
+    if(!pointerStart.moved&&(Math.abs(dx)>thr||Math.abs(dy)>thr)){
+      pointerStart.moved=true;
+      let tr,tc;
+      if(Math.abs(dx)>=Math.abs(dy)){tr=pointerStart.r; tc=pointerStart.c+(dx>0?1:-1);}
+      else{tr=pointerStart.r+(dy>0?1:-1); tc=pointerStart.c;}
+      if(tr>=0&&tr<ROWS&&tc>=0&&tc<COLS&&isHealthy(board[tr][tc])){
+        const ps={...pointerStart}; pointerStart=null; selected=null;
+        trySwap(ps.r,ps.c,tr,tc);
+      }
+    }
+  });
+  gameCanvas.addEventListener('pointerup',e=>{
+    if(!pointerStart)return;
+    if(!pointerStart.moved&&!busy) onCellTap(pointerStart.r,pointerStart.c);
+    pointerStart=null;
+  });
+}
+
+function canvasPos(e){
+  const rect=gameCanvas.getBoundingClientRect();
+  const sx=(e.clientX-rect.left)*(CW/rect.width), sy=(e.clientY-rect.top)*(CH/rect.height);
+  return{r:Math.floor((sy-GAP)/(CELL+GAP)),c:Math.floor((sx-GAP)/(CELL+GAP))};
+}
+
+function onCellTap(r,c){
+  if(rescueMode){
+    if(isJunk(board[r][c])) useRescueOnCell(r,c);
+    else setMsg('請點擊橘色標記的垃圾食物方塊！');
+    return;
+  }
+  if(isJunk(board[r][c])){setMsg('垃圾食物無法移動！');return;}
+  if(!selected){selected={r,c};playSfx('選項');renderBoard();}
+  else if(selected.r===r&&selected.c===c){selected=null;renderBoard();}
+  else if(isAdj(selected,{r,c})){const p={...selected};selected=null;trySwap(p.r,p.c,r,c);}
+  else{selected={r,c};playSfx('選項');renderBoard();}
+}
+function isAdj(a,b){return Math.abs(a.r-b.r)+Math.abs(a.c-b.c)===1;}
+
+// ══════════════════════════════
+//  START / LEVEL
+// ══════════════════════════════
+function startGame(){
+  playerName=document.getElementById('playerNameInput').value.trim()||'貓奴';
+  score=0;combo=0;maxCombo=0;totalMatches=0;
+  level=1;nutrition=[0,0,0,0,0];selected=null;busy=false;
+  rescueItems=0;rescueMode=false;hintCount=1;lastUnlockTier=0;unlockQueue=[];
+  initLevel(); show('gameScreen');
+}
+function initLevel(){
+  generateBoard(); renderNutBars(); updateTopBar();
+  document.getElementById('levelBadge').textContent=`LEVEL ${level}`;
+  const jc=(level-1)*3;
+  document.getElementById('junkNotice').textContent=jc>0?`⚠ 本關 ${jc} 個垃圾食物障礙！`:'';
+  setMsg('消除健康食物補充營養！');
+  catPose='sit'; drawCatSprite(document.getElementById('catCanvas'),level,'sit','#16213e');
+  startPoseCycle();
+  rescueMode=false; hintCount=1; updateItemDisplay();
+  renderBoard();
+}
+
+// ══════════════════════════════
+//  BOARD
+// ══════════════════════════════
+function generateBoard(){
+  const junkN=Math.min((level-1)*3,Math.floor(COLS*ROWS*.3));
+  const junkPos=new Set();
+  while(junkPos.size<junkN){const r=2+Math.floor(Math.random()*(ROWS-2)); junkPos.add(r*COLS+Math.floor(Math.random()*COLS));}
+  let tries=0;
+  do{
+    board=[];
+    for(let r=0;r<ROWS;r++){board[r]=[];for(let c=0;c<COLS;c++) board[r][c]=junkPos.has(r*COLS+c)?JUNK_IDS[Math.floor(Math.random()*JUNK_IDS.length)]:safeFood(r,c);}
+    tries++;
+  }while(!hasAnyMove()&&tries<30);
+}
+function safeFood(r,c){
+  let ch=[...Array(HEALTHY).keys()];
+  if(c>=2&&board[r][c-1]<HEALTHY&&board[r][c-1]===board[r][c-2])ch=ch.filter(f=>f!==board[r][c-1]);
+  if(r>=2&&board[r-1][c]<HEALTHY&&board[r-1][c]===board[r-2][c])ch=ch.filter(f=>f!==board[r-1][c]);
+  if(!ch.length)ch=[...Array(HEALTHY).keys()];
+  return ch[Math.floor(Math.random()*ch.length)];
+}
+
+function renderBoard(){
+  const ctx=gameCtx; ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,CW,CH);
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const x=GAP+c*(CELL+GAP),y=GAP+r*(CELL+GAP),v=board[r][c];
+    const sel=selected&&selected.r===r&&selected.c===c;
+    ctx.fillStyle=isJunk(v)?'#2a0000':sel?'#1e2a5a':'#16213e'; ctx.fillRect(x,y,CELL,CELL);
+    if(sel){ctx.strokeStyle='#ffd700';ctx.lineWidth=3;}
+    else if(isJunk(v)){ctx.strokeStyle='#660000';ctx.lineWidth=2;}
+    else{ctx.strokeStyle='#2a3a5a';ctx.lineWidth=1;}
+    ctx.strokeRect(x+1,y+1,CELL-2,CELL-2);
+    if(v!=null) drawFood(ctx,x+2,y+2,CELL-4,v);
+    if(isJunk(v)){
+      if(rescueMode){ctx.fillStyle='rgba(255,140,0,.35)';ctx.fillRect(x,y,CELL,CELL);ctx.strokeStyle='#ffaa00';ctx.lineWidth=3;ctx.strokeRect(x+1,y+1,CELL-2,CELL-2);}
+      else{ctx.fillStyle='rgba(160,0,0,.18)';ctx.fillRect(x,y,CELL,CELL);}
+      ctx.fillStyle=rescueMode?'#ffcc00':'#ff4444';ctx.font=`bold ${Math.round(CELL*.22)}px monospace`;ctx.textAlign='center';ctx.fillText(rescueMode?'🎯':'✕',x+CELL/2,y+CELL-6);
+    }
+    if(sel){ctx.strokeStyle='rgba(255,215,0,.6)';ctx.lineWidth=2;ctx.strokeRect(x,y,CELL,CELL);}
+  }
+}
+
+// ══════════════════════════════
+//  MATCH LOGIC
+// ══════════════════════════════
+async function trySwap(r1,c1,r2,c2){
+  busy=true; swap(r1,c1,r2,c2); renderBoard();
+  const m=findMatches();
+  if(!m.length){await delay(180);swap(r1,c1,r2,c2);renderBoard();combo=0;busy=false;return;}
+  await processMatches(m);
+  if(allFull()){await delay(200);showLevelClear();busy=false;return;}
+  if(!hasAnyMove()){
+    const hasJunk=board.flat().some(v=>isJunk(v));
+    if(rescueItems>0&&hasJunk){setMsg('⚠ 無法移動！使用大餐救援包消除垃圾食物！喵嗚～');updateItemDisplay();busy=false;return;}
+    await delay(200);endGame();busy=false;return;
+  }
+  busy=false;
+}
+function swap(r1,c1,r2,c2){[board[r1][c1],board[r2][c2]]=[board[r2][c2],board[r1][c1]];}
+
+function findMatches(){
+  const set=new Set();
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS-2;c++){const v=board[r][c];if(!isHealthy(v))continue;if(v===board[r][c+1]&&v===board[r][c+2]){let e=c+2;while(e+1<COLS&&board[r][e+1]===v)e++;for(let i=c;i<=e;i++)set.add(`${r},${i}`);}}
+  for(let c=0;c<COLS;c++) for(let r=0;r<ROWS-2;r++){const v=board[r][c];if(!isHealthy(v))continue;if(v===board[r+1][c]&&v===board[r+2][c]){let e=r+2;while(e+1<ROWS&&board[e+1][c]===v)e++;for(let i=r;i<=e;i++)set.add(`${i},${c}`);}}
+  return[...set].map(s=>{const[r,c]=s.split(',').map(Number);return{r,c,f:board[r][c]};});
+}
+
+async function processMatches(matches){
+  combo++;if(combo>maxCombo)maxCombo=combo;totalMatches++;
+  const cnt=new Array(HEALTHY).fill(0); matches.forEach(m=>cnt[m.f]++);
+  NUT_DEF.forEach((nd,ni)=>{let g=0;cnt.forEach((c,fi)=>g+=c*nd.contrib[fi]);nutrition[ni]=Math.min(100,nutrition[ni]+g*.1);});
+  const gained=matches.length*10*level+(combo>1?combo*combo*3*level:0);
+  score+=gained;
+  checkCollectionUnlock();
+
+  // Spawn particles flying to cat
+  spawnParticles(matches);
+  playSfx(combo===1?'消一格':combo===2?'連消兩格':combo===3?'連消三格':'連消四格以上');
+
+  await flash(matches,'#ffd700');
+  matches.forEach(({r,c})=>{board[r][c]=null;});
+  await gravity();
+  renderBoard(); renderNutBars(); updateTopBar();
+
+  // Cat happy + speech
+  const p=nutProgress();
+  const catState=p>70?'happy':p>35?'neutral':'sad';
+  drawCatSprite(document.getElementById('catCanvas'),level,'sit','#16213e');
+  setTimeout(()=>drawCatSprite(document.getElementById('catCanvas'),level,catPose,'#16213e'),800);
+
+  const msg=combo>=2
+    ?`${combo>=5?'🔥':combo>=3?'⚡':'✨'} ${combo}連消！${CAT_MSGS[Math.floor(Math.random()*CAT_MSGS.length)]}`
+    :CAT_MSGS[Math.floor(Math.random()*CAT_MSGS.length)];
+  setMsg(msg);
+
+  const next=findMatches();
+  if(next.length){await delay(100);await processMatches(next);}
+  else{combo=0;if(!hasAnyMove()){const hasJunk=board.flat().some(v=>isJunk(v));if(rescueItems>0&&hasJunk){setMsg('⚠ 無法移動！使用大餐救援包消除垃圾食物！喵嗚～');updateItemDisplay();}else if(!hasJunk)await shuffleBoard();}}
+}
+
+async function flash(cells,color){
+  for(let f=0;f<3;f++){
+    cells.forEach(({r,c})=>{const x=GAP+c*(CELL+GAP),y=GAP+r*(CELL+GAP);gameCtx.fillStyle=f%2===0?color:'rgba(255,255,255,.3)';gameCtx.fillRect(x,y,CELL,CELL);});
+    await delay(55);
+  }
+}
+async function gravity(){
+  for(let c=0;c<COLS;c++){let e=ROWS-1;for(let r=ROWS-1;r>=0;r--)if(board[r][c]!=null){board[e][c]=board[r][c];if(e!==r)board[r][c]=null;e--;}for(let r=e;r>=0;r--)board[r][c]=Math.floor(Math.random()*HEALTHY);}
+  await delay(140);
+}
+async function shuffleBoard(){
+  setMsg('沒有可移動的位置！重新洗牌…喵嗚～');
+  drawCatSprite(document.getElementById('catCanvas'),level,'lie','#16213e');
+  await delay(500);
+  const flat=board.flat().filter(v=>isHealthy(v));
+  for(let i=flat.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[flat[i],flat[j]]=[flat[j],flat[i]];}
+  let idx=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(isHealthy(board[r][c]))board[r][c]=flat[idx++]??Math.floor(Math.random()*HEALTHY);
+  renderBoard();await delay(300);setMsg('洗牌完成！繼續加油！喵～');
+}
+function hasAnyMove(){
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    if(!isHealthy(board[r][c]))continue;
+    for(const nb of[{r,c:c+1},{r:r+1,c}]){if(nb.r>=ROWS||nb.c>=COLS||!isHealthy(board[nb.r][nb.c]))continue;swap(r,c,nb.r,nb.c);const m=findMatches();swap(r,c,nb.r,nb.c);if(m.length)return true;}
+  }return false;
+}
+
+function updateHintDisplay(){
+  const el=document.getElementById('hintCount');
+  if(el) el.textContent=hintCount;
+  const btn=document.getElementById('hintBtn');
+  if(btn) btn.style.opacity=hintCount>0?'1':'0.4';
+}
+function useHint(){
+  if(busy)return;
+  if(hintCount<=0){setMsg('本關提示已用完！喵嗚～');return;}
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    if(!isHealthy(board[r][c]))continue;
+    for(const nb of[{r,c:c+1},{r:r+1,c}]){
+      if(nb.r>=ROWS||nb.c>=COLS||!isHealthy(board[nb.r][nb.c]))continue;
+      swap(r,c,nb.r,nb.c);const m=findMatches();swap(r,c,nb.r,nb.c);
+      if(m.length){hintCount--;updateHintDisplay();flashHint(r,c,nb.r,nb.c);return;}
+    }
+  }setMsg('找不到可消除的組合…喵嗚～');
+}
+function flashHint(r1,c1,r2,c2){let t=0;const iv=setInterval(()=>{renderBoard();if(t%2===0){[[r1,c1],[r2,c2]].forEach(([r,c])=>{const x=GAP+c*(CELL+GAP),y=GAP+r*(CELL+GAP);gameCtx.strokeStyle='#ffd700';gameCtx.lineWidth=4;gameCtx.strokeRect(x+2,y+2,CELL-4,CELL-4);});}if(++t>10)clearInterval(iv);},200);}
+
+function updateTopBar(){document.getElementById('scoreDisp').textContent=score;document.getElementById('comboDisp').textContent=maxCombo;}
+function renderNutBars(){
+  const el=document.getElementById('nutSection');el.innerHTML='';
+  NUT_DEF.forEach((nd,i)=>{const pct=Math.min(100,Math.round(nutrition[i]));el.innerHTML+=`<div class="nut-row"><div class="nut-header"><span class="nut-name">${nd.name}</span><span class="nut-pct">${pct}%${pct>=100?' ✓':''}</span></div><div class="nut-track"><div class="nut-fill" style="width:${pct}%;background:${nd.color}"></div></div></div>`;});
+}
+function setMsg(t){document.getElementById('msgBox').textContent=t;}
+
+function showLevelClear(){
+  playSfx('過關');
+  drawCatSprite(document.getElementById('clearCat'),level+1,'sit','#16213e');
+  document.getElementById('lvTitle').textContent=`LEVEL ${level} CLEAR!`;
+  document.getElementById('lvSub').innerHTML=`得分：${score}<br>橘貓長大大！<br>小心！垃圾食物來襲！`;
+  // Show rescue pack notice if this level clears will award one
+  const earnsRescue = (level % 2 === 0);
+  const notice = document.getElementById('lvRescueNotice');
+  notice.style.display = earnsRescue ? 'block' : 'none';
+  if (earnsRescue && rescueSrc) {
+    const img = document.getElementById('lvRescueIcon');
+    if (!img.src.startsWith('data:')) img.src = rescueSrc.toDataURL();
+  }
+  document.getElementById('lvOverlay').classList.add('show');
+}
+function nextLevel(){
+  document.getElementById('lvOverlay').classList.remove('show');
+  const earns = level%2===0;
+  if(earns){rescueItems++;playSfx('道具');updateItemDisplay();}
+  level++;nutrition=[0,0,0,0,0];initLevel();
+  // Set message AFTER initLevel so it isn't overwritten
+  if(earns) setMsg('🎁 獲得大餐救援包！幫你對抗你的飲食負擔！');
+}
+function confirmQuit(){if(confirm('確定離開？分數將會紀錄。'))endGame();}
+function endGame(){
+  saveScore();const rank=getRank();
+  stopPoseCycle(); drawCatSprite(document.getElementById('overCat'),level,nutProgress()>50?'sit':'lie','#16213e');
+  document.getElementById('goScore').textContent=score;
+  document.getElementById('goDetail').innerHTML=`最高連消：${maxCombo}　消除：${totalMatches}次<br>到達第 ${level} 關`;
+  document.getElementById('goRank').textContent=rank?`🏆 排行第 ${rank} 名！`:'';
+  show('gameOverScreen');
+}
+
+function saveScore(){leaderboard.push({name:playerName,score,level});leaderboard.sort((a,b)=>b.score-a.score);leaderboard=leaderboard.slice(0,10);localStorage.setItem('catHL4',JSON.stringify(leaderboard));}
+function getRank(){return leaderboard.findIndex(e=>e.name===playerName&&e.score===score)+1;}
+function showLeaderboard(from){
+  prevScreen=from;
+  const el=document.getElementById('lbContent');
+  if(!leaderboard.length){el.innerHTML='<div class="lb-empty">尚無紀錄，快來挑戰！</div>';}
+  else{const medals=['🥇','🥈','🥉'];el.innerHTML=`<div class="lb-row" style="color:#555;font-size:9px"><div style="width:30px">名</div><div style="flex:1">玩家</div><div style="width:42px;text-align:center">關</div><div style="width:60px;text-align:right">分</div></div>`+leaderboard.map((e,i)=>`<div class="lb-row${e.name===playerName&&e.score===score?' me':''}"><div class="lb-rank">${medals[i]||(i+1)}</div><div class="lb-name">${e.name}</div><div class="lb-lv">Lv${e.level||1}</div><div class="lb-sc">${e.score}</div></div>`).join('');}
+  show('leaderboardScreen');
+}
+function lbBack(){show(prevScreen==='start'?'startScreen':'gameOverScreen');}
+function clearLB(){if(confirm('確定清除所有排行榜？')){leaderboard=[];localStorage.removeItem('catHL4');showLeaderboard(prevScreen);}}
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ══════════════════════════════
+//  CAT COLLECTION
+// ══════════════════════════════
+const COLLECTION_KEY = 'catCollect2';
+const UNLOCK_THRESHOLD = 30000;
+const TOTAL_CATS = 10;
+
+// 9 collection cats + 阿橘 last (index 9)
+const CAT_FILES = ['Benz','小公舉','斑斑','歐罵罵','灰仔','糰子','花花花','豹豹','銅鑼燒','阿橘'];
+
+let catCollection = JSON.parse(localStorage.getItem(COLLECTION_KEY) || '[]');
+let lastUnlockTier = 0;
+let unlockQueue = [];
+
+// Flood-fill from border pixels → mark background indices
+function floodFillBg(img) {
+  const W = img.naturalWidth, H = img.naturalHeight;
+  const tmp = document.createElement('canvas');
+  tmp.width = W; tmp.height = H;
+  const ctx = tmp.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  const id = ctx.getImageData(0, 0, W, H);
+  const d = id.data;
+  const isBg = idx => d[idx+3] > 20 && d[idx] > 185 && d[idx+1] > 185 && d[idx+2] > 185;
+  const bgMask = new Uint8Array(W * H); // 1 = background
+  const stack = [];
+  const seed = (x, y) => { const k = y*W+x; if (!bgMask[k] && isBg(k*4)) { bgMask[k]=1; stack.push(k); } };
+  for (let x = 0; x < W; x++) { seed(x, 0); seed(x, H-1); }
+  for (let y = 0; y < H; y++) { seed(0, y); seed(W-1, y); }
+  while (stack.length) {
+    const k = stack.pop(), x = k%W, y = (k/W)|0;
+    if (x>0) seed(x-1,y); if (x<W-1) seed(x+1,y);
+    if (y>0) seed(x,y-1); if (y<H-1) seed(x,y+1);
+  }
+  return { d, id, W, H, bgMask, ctx, tmp };
+}
+
+// Full color de-backgrounded canvas
+function removeBgFromImg(img) {
+  const { d, id, W, H, bgMask, ctx, tmp } = floodFillBg(img);
+  for (let i = 0; i < W*H; i++) {
+    if (bgMask[i]) { d[i*4+3] = 0; continue; }
+    // fringe erosion: remove remaining light pixels adjacent to transparent bg
+    if (d[i*4]<160||d[i*4+1]<160||d[i*4+2]<160) continue;
+    const px=i%W, py=(i/W)|0;
+    if ((px>0&&bgMask[i-1])||(px<W-1&&bgMask[i+1])||
+        (py>0&&bgMask[i-W])||(py<H-1&&bgMask[i+W])) d[i*4+3]=0;
+  }
+  ctx.putImageData(id, 0, 0);
+  return tmp;
+}
+
+// Silhouette: flood-fill with very strict threshold (only pure white connected to border),
+// then paint ALL remaining pixels solid black — white fur stays black too
+function makeSilhouetteFromImg(img) {
+  const W = img.naturalWidth, H = img.naturalHeight;
+  const tmp = document.createElement('canvas');
+  tmp.width = W; tmp.height = H;
+  const ctx = tmp.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  const id = ctx.getImageData(0, 0, W, H);
+  const d = id.data;
+  // Only remove pixels that are very pure white (≥252) connected to edges
+  const isBg = idx => d[idx+3] > 20 && d[idx] >= 252 && d[idx+1] >= 252 && d[idx+2] >= 252;
+  const bgMask = new Uint8Array(W * H);
+  const stack = [];
+  const seed = (x, y) => { const k=y*W+x; if (!bgMask[k] && isBg(k*4)) { bgMask[k]=1; stack.push(k); } };
+  for (let x = 0; x < W; x++) { seed(x, 0); seed(x, H-1); }
+  for (let y = 0; y < H; y++) { seed(0, y); seed(W-1, y); }
+  while (stack.length) {
+    const k=stack.pop(), x=k%W, y=(k/W)|0;
+    if (x>0) seed(x-1,y); if (x<W-1) seed(x+1,y);
+    if (y>0) seed(x,y-1); if (y<H-1) seed(x,y+1);
+  }
+  // Background → transparent; everything else → solid black
+  for (let i = 0; i < W*H; i++) {
+    if (bgMask[i] || d[i*4+3] < 10) { d[i*4+3] = 0; }
+    else { d[i*4]=34; d[i*4+1]=34; d[i*4+2]=34; d[i*4+3]=255; }
+  }
+  ctx.putImageData(id, 0, 0);
+  return tmp;
+}
+
+// Preload all 10 cat images + strip background
+const catCollSrc = new Array(TOTAL_CATS).fill(null);      // color
+const catCollSil = new Array(TOTAL_CATS).fill(null);      // silhouette
+
+let catCollLoaded = 0;
+CAT_FILES.forEach((name, i) => {
+  const img = new Image();
+  img.onload = () => {
+    catCollSrc[i] = removeBgFromImg(img);
+    catCollSil[i] = makeSilhouetteFromImg(img);
+    catCollLoaded++;
+  };
+  img.src = `${name}.png`;
+});
+
+function saveCollection() {
+  localStorage.setItem(COLLECTION_KEY, JSON.stringify(catCollection));
+}
+
+function checkCollectionUnlock() {
+  const tier = Math.floor(score / UNLOCK_THRESHOLD);
+  if (tier <= lastUnlockTier) return;
+  const newTiers = tier - lastUnlockTier;
+  lastUnlockTier = tier;
+  // 阿橘 (index 9) is only unlockable as the very last one
+  const locked = [];
+  for (let i = 0; i < TOTAL_CATS - 1; i++) if (!catCollection.includes(i)) locked.push(i);
+  const aJu = TOTAL_CATS - 1;
+  for (let t = 0; t < newTiers; t++) {
+    if (locked.length) {
+      const pick = locked.splice(Math.floor(Math.random() * locked.length), 1)[0];
+      catCollection.push(pick); unlockQueue.push(pick);
+    } else if (!catCollection.includes(aJu)) {
+      catCollection.push(aJu); unlockQueue.push(aJu);
+    }
+  }
+  saveCollection();
+  if (unlockQueue.length) showNextUnlock();
+}
+
+function makeCollCanvas(catId, size, shadow) {
+  const src = shadow ? catCollSil[catId] : catCollSrc[catId];
+  const c = document.createElement('canvas');
+  c.width = size; c.height = size;
+  if (src) {
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    const scale = Math.min(size/src.width, size/src.height);
+    const dw = src.width*scale, dh = src.height*scale;
+    ctx.drawImage(src, (size-dw)/2, (size-dh)/2, dw, dh);
+  }
+  return c;
+}
+
+function showNextUnlock() {
+  if (!unlockQueue.length) return;
+  const catId = unlockQueue.shift();
+  const popup = document.getElementById('unlockPopup');
+  const c = document.getElementById('unlockImg');
+  c.width = 100; c.height = 100;
+  const drawn = makeCollCanvas(catId, 100, false);
+  c.getContext('2d').drawImage(drawn, 0, 0);
+  document.getElementById('unlockName').textContent = `✦ ${CAT_FILES[catId]} ✦`;
+  popup.classList.add('show');
+}
+
+function closeUnlockPopup() {
+  document.getElementById('unlockPopup').classList.remove('show');
+  if (unlockQueue.length) setTimeout(showNextUnlock, 300);
+}
+
+function openCollection() {
+  renderCollection();
+  document.getElementById('collectionOverlay').classList.add('show');
+}
+
+function closeCollection() {
+  document.getElementById('collectionOverlay').classList.remove('show');
+}
+
+function renderCollection() {
+  const grid = document.getElementById('colGrid');
+  grid.innerHTML = '';
+  const SIZE = 82;
+  for (let i = 0; i < TOTAL_CATS; i++) {
+    const unlocked = catCollection.includes(i);
+    const isLast = (i === TOTAL_CATS - 1);
+    const cell = document.createElement('div');
+    cell.className = 'col-cell' + (isLast ? ' last-cat' : '');
+    const frame = document.createElement('div');
+    frame.className = 'col-frame' + (unlocked ? ' unlocked' : '');
+    // Draw cat into canvas (shadow mode if locked)
+    const c = makeCollCanvas(i, SIZE, !unlocked);
+    frame.appendChild(c);
+    const lbl = document.createElement('div');
+    lbl.className = 'col-num' + (unlocked ? ' unlocked' : '');
+    lbl.textContent = unlocked ? CAT_FILES[i] : '???';
+    cell.appendChild(frame);
+    cell.appendChild(lbl);
+    grid.appendChild(cell);
+  }
+  const count = catCollection.length;
+  document.getElementById('colProgress').textContent =
+    `已收集 ${count} / ${TOTAL_CATS} 隻　每 3 萬分解鎖一隻`;
+}
+</script>
+</body>
+</html>
