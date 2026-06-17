@@ -161,13 +161,13 @@ body { background:#1a1a2e; color:#fff; font-family:'Press Start 2P',monospace; m
 
 <!-- GAME OVER -->
 <div id="gameOverScreen" class="screen">
-  <canvas id="overCat" width="120" height="120"></canvas>
+  <canvas id="overCat" width="200" height="180"></canvas>
   <div class="go-title">GAME OVER</div>
   <div class="go-score" id="goScore">0</div>
   <div class="go-detail" id="goDetail"></div>
   <div class="go-rank" id="goRank"></div>
   <div class="btn-row">
-    <button class="px-btn green" onclick="startGame()">▶ 再玩一次</button>
+    <button class="px-btn green" onclick="goHome()">▶ 回首頁</button>
     <button class="px-btn blue"  onclick="showLeaderboard('over')">🏆 排行榜</button>
   </div>
   <button class="px-btn" onclick="openCollection()" style="background:#8e44ad;font-size:12px">🐾 貓咪收藏冊</button>
@@ -325,7 +325,7 @@ function drawCatSprite(canvas, level, pose, bg) {
 
   // Use sitting sprite to determine base scale so both poses appear same-size cat
   const pad = 6;
-  const baseScale = Math.min((W - pad*2) / sitSp.w, (H - pad*2) / sitSp.h);
+  const baseScale = Math.min((W - pad*2) / sitSp.w, (H - pad*2) / sitSp.h, (W - pad*2) / sp.w, (H - pad*2) / sp.h);
   const dw = sp.w * baseScale, dh = sp.h * baseScale;
   const dx = (W - dw) / 2, dy = (H - dh) / 2;
 
@@ -713,6 +713,12 @@ function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.re
 // ══════════════════════════════
 //  INIT
 // ══════════════════════════════
+// Play BGM on first user interaction (browser autoplay policy)
+document.addEventListener('pointerdown', function startBgmOnce(){
+  bgmPlay();
+  document.removeEventListener('pointerdown', startBgmOnce);
+}, {once:true});
+
 window.onload=()=>{
   // startCat drawn in catImg.onload
   const leg=document.getElementById('foodLegend');
@@ -981,10 +987,11 @@ function nextLevel(){
   // Set message AFTER initLevel so it isn't overwritten
   if(earns) setMsg('🎁 獲得大餐救援包！幫你對抗你的飲食負擔！');
 }
+function goHome(){show('startScreen');bgmPlay();}
 function confirmQuit(){if(confirm('確定離開？分數將會紀錄。'))endGame();}
 function endGame(){
   saveScore();const rank=getRank();
-  bgmStop(); try{sfx886.currentTime=0;sfx886.play().catch(()=>{});}catch(e){} stopPoseCycle(); drawCatSprite(document.getElementById('overCat'),level,nutProgress()>50?'sit':'lie','#16213e');
+  bgmStop(); try{sfx886.currentTime=0;sfx886.play().catch(()=>{});}catch(e){} stopPoseCycle(); drawCatSprite(document.getElementById('overCat'),level,nutProgress()>50?'sit':'lie');
   document.getElementById('goScore').textContent=score;
   document.getElementById('goDetail').innerHTML=`最高連消：${maxCombo}　消除：${totalMatches}次<br>到達第 ${level} 關`;
   document.getElementById('goRank').textContent=rank?`🏆 排行第 ${rank} 名！`:'';
