@@ -350,16 +350,17 @@ function stopPoseCycle() { if (poseTimerId) { clearTimeout(poseTimerId); poseTim
 //  SOUND EFFECTS
 // ══════════════════════════════
 const sfx = {};
-sfx['選項']   = new Audio('sfx-menu.mp3');
-sfx['過關']   = new Audio('sfx-clear.mp3');
-sfx['消一格'] = new Audio('sfx-match1.mp3');
-sfx['連消兩格'] = new Audio('sfx-match2.mp3');
-sfx['連消三格'] = new Audio('sfx-match3.mp3');
-sfx['連消四格以上'] = new Audio('sfx-match4.mp3');
-sfx['道具']   = new Audio('sfx-item.mp3');
-sfx['垃圾']   = new Audio('sfx-junk.mp3');
-const sfx886 = new Audio('886.mp3');
-const bgm = new Audio('bgm.mp3');
+function mkAudio(src, preload=true){ const a=new Audio(src); if(preload) a.preload='auto'; return a; }
+sfx['選項']   = mkAudio('sfx-menu.mp3');
+sfx['過關']   = mkAudio('sfx-clear.mp3');
+sfx['消一格'] = mkAudio('sfx-match1.mp3');
+sfx['連消兩格'] = mkAudio('sfx-match2.mp3');
+sfx['連消三格'] = mkAudio('sfx-match3.mp3');
+sfx['連消四格以上'] = mkAudio('sfx-match4.mp3');
+sfx['道具']   = mkAudio('sfx-item.mp3');
+sfx['垃圾']   = mkAudio('sfx-junk.mp3');
+const sfx886 = mkAudio('886.mp3');
+const bgm = mkAudio('bgm.mp3', false); // BGM streamed, not preloaded
 bgm.loop = true;
 bgm.volume = 0.25;
 function bgmPlay() { try { bgm.currentTime=0; bgm.play().catch(()=>{}); } catch(e){} }
