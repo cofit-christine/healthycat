@@ -358,6 +358,7 @@ sfx['連消三格'] = new Audio('sfx-match3.mp3');
 sfx['連消四格以上'] = new Audio('sfx-match4.mp3');
 sfx['道具']   = new Audio('sfx-item.mp3');
 sfx['垃圾']   = new Audio('sfx-junk.mp3');
+const sfx886 = new Audio('886.mp3');
 const bgm = new Audio('bgm.mp3');
 bgm.loop = true;
 bgm.volume = 0.25;
@@ -480,8 +481,7 @@ function checkDeadlock() {
   if (rescueItems > 0 && hasJunk) {
     setMsg('⚠ 無法移動！使用大餐救援包消除垃圾食物！喵嗚～');
   } else if (!hasAnyMove()) {
-    const flat = board.flat().filter(v => isHealthy(v));
-    if (flat.length > 0) shuffleBoard(); else endGame();
+    endGame();
   }
 }
 
@@ -909,7 +909,7 @@ async function processMatches(matches){
 
   const next=findMatches();
   if(next.length){await delay(100);await processMatches(next);}
-  else{combo=0;if(!hasAnyMove()){const hasJunk=board.flat().some(v=>isJunk(v));if(rescueItems>0&&hasJunk){setMsg('⚠ 無法移動！使用大餐救援包消除垃圾食物！喵嗚～');updateItemDisplay();}else if(!hasJunk)await shuffleBoard();}}
+  else{combo=0;if(!hasAnyMove()){const hasJunk=board.flat().some(v=>isJunk(v));if(rescueItems>0&&hasJunk){setMsg('⚠ 無法移動！使用大餐救援包消除垃圾食物！喵嗚～');updateItemDisplay();}else endGame();}}
 }
 
 async function flash(cells,color){
@@ -921,15 +921,6 @@ async function flash(cells,color){
 async function gravity(){
   for(let c=0;c<COLS;c++){let e=ROWS-1;for(let r=ROWS-1;r>=0;r--)if(board[r][c]!=null){board[e][c]=board[r][c];if(e!==r)board[r][c]=null;e--;}for(let r=e;r>=0;r--)board[r][c]=Math.floor(Math.random()*HEALTHY);}
   await delay(140);
-}
-async function shuffleBoard(){
-  setMsg('沒有可移動的位置！重新洗牌…喵嗚～');
-  drawCatSprite(document.getElementById('catCanvas'),level,'lie','#16213e');
-  await delay(500);
-  const flat=board.flat().filter(v=>isHealthy(v));
-  for(let i=flat.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[flat[i],flat[j]]=[flat[j],flat[i]];}
-  let idx=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(isHealthy(board[r][c]))board[r][c]=flat[idx++]??Math.floor(Math.random()*HEALTHY);
-  renderBoard();await delay(300);setMsg('洗牌完成！繼續加油！喵～');
 }
 function hasAnyMove(){
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
@@ -993,7 +984,7 @@ function nextLevel(){
 function confirmQuit(){if(confirm('確定離開？分數將會紀錄。'))endGame();}
 function endGame(){
   saveScore();const rank=getRank();
-  bgmStop(); stopPoseCycle(); drawCatSprite(document.getElementById('overCat'),level,nutProgress()>50?'sit':'lie','#16213e');
+  bgmStop(); try{sfx886.currentTime=0;sfx886.play().catch(()=>{});}catch(e){} stopPoseCycle(); drawCatSprite(document.getElementById('overCat'),level,nutProgress()>50?'sit':'lie','#16213e');
   document.getElementById('goScore').textContent=score;
   document.getElementById('goDetail').innerHTML=`最高連消：${maxCombo}　消除：${totalMatches}次<br>到達第 ${level} 關`;
   document.getElementById('goRank').textContent=rank?`🏆 排行第 ${rank} 名！`:'';
