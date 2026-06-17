@@ -358,6 +358,11 @@ sfx['連消三格'] = new Audio('sfx-match3.mp3');
 sfx['連消四格以上'] = new Audio('sfx-match4.mp3');
 sfx['道具']   = new Audio('sfx-item.mp3');
 sfx['垃圾']   = new Audio('sfx-junk.mp3');
+const bgm = new Audio('bgm.mp3');
+bgm.loop = true;
+bgm.volume = 0.25;
+function bgmPlay() { try { bgm.currentTime=0; bgm.play().catch(()=>{}); } catch(e){} }
+function bgmStop() { try { bgm.pause(); bgm.currentTime=0; } catch(e){} }
 function playSfx(name) { try { const a=sfx[name]; if(!a)return; a.currentTime=0; a.play().catch(()=>{}); } catch(e){} }
 // Play selection sound on any button hover
 document.addEventListener('mouseenter', e => { if (e.target.closest('button')) playSfx('選項'); }, true);
@@ -793,7 +798,7 @@ function startGame(){
   score=0;combo=0;maxCombo=0;totalMatches=0;
   level=1;nutrition=[0,0,0,0,0];selected=null;busy=false;
   rescueItems=0;rescueMode=false;hintCount=1;lastUnlockTier=0;unlockQueue=[];
-  initLevel(); show('gameScreen');
+  initLevel(); show('gameScreen'); bgmPlay();
 }
 function initLevel(){
   generateBoard(); renderNutBars(); updateTopBar();
@@ -988,7 +993,7 @@ function nextLevel(){
 function confirmQuit(){if(confirm('確定離開？分數將會紀錄。'))endGame();}
 function endGame(){
   saveScore();const rank=getRank();
-  stopPoseCycle(); drawCatSprite(document.getElementById('overCat'),level,nutProgress()>50?'sit':'lie','#16213e');
+  bgmStop(); stopPoseCycle(); drawCatSprite(document.getElementById('overCat'),level,nutProgress()>50?'sit':'lie','#16213e');
   document.getElementById('goScore').textContent=score;
   document.getElementById('goDetail').innerHTML=`最高連消：${maxCombo}　消除：${totalMatches}次<br>到達第 ${level} 關`;
   document.getElementById('goRank').textContent=rank?`🏆 排行第 ${rank} 名！`:'';
